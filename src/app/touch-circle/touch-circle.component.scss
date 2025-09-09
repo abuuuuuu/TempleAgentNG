@@ -1,0 +1,19 @@
+.circle {
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background-color: #eee;
+  position: relative;
+  margin: 50px auto;
+  touch-action: none; // importante para móviles
+  overflow: hidden;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: red;
+  position: absolute;
+  transform: translate(-50%, -50%);
+}

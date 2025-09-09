@@ -1,0 +1,158 @@
+ion-segment{
+    height: 50px;
+}
+ion-segment-view.primer-segment-view{
+//   height: auto;
+}
+
+ion-segment-view.primer-segment-view > ion-segment-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+ion-segment-view.primer-segment-view > ion-segment-content:nth-of-type(1) {
+  background: lightpink;
+}
+ion-segment-view.primer-segment-view > ion-segment-content:nth-of-type(2) {
+  background: black;
+}
+ion-segment-view.primer-segment-view > ion-segment-content:nth-of-type(3) {
+  background: lightgreen;
+}
+.segment-with-icons {
+  position: relative; /* Necesario para la posición absoluta de los iconos */
+}
+
+/* CONTENEDOR DEL SEGMENTO + ICONOS */
+.segment-container {
+  position: relative;
+  width: 100%;
+  margin-bottom: 0px; /* separa del contenido inferior */
+}
+
+/* SEGMENTO ESTILIZADO */
+ion-segment.primer-segment.connected {
+  --background: #248800;          /* fondo verde claro */
+  --color: #ffffff;               /* texto blanco por defecto */
+  --indicator-color: #8de02c;     /* línea de indicador en verde lima */
+  --indicator-height: 3px;        /* grosor del indicador */
+  font-weight: bold;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+ion-segment.primer-segment.connected ion-segment-button {
+  --color: #ffffff;
+  --color-checked: #ffffff;
+  --background-checked: #0f5c00;
+
+  /* 👉 Añadir estas líneas: */
+  --indicator-color: #8de02c;   /* Color verde del indicador */
+  --indicator-height: 3px;      /* Grosor del indicador */
+
+  font-weight: bold;
+  transition: background 0.3s ease;
+}
+
+/* AJUSTE para evitar que los iconos se solapen con el primer botón */
+ion-segment.primer-segment.connected ion-segment-button:first-child {
+  padding-left: 80px; /* espacio para los iconos a la izquierda */
+}
+
+/* ICONOS FLOTANTES */
+.volumlow,
+.volumhigh {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 20px;
+  color: white;
+  z-index: 10;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.2s ease, transform 0.1s ease;
+}
+
+.volumlow {
+  left: 10px;
+}
+
+.volumhigh {
+  left: 40px;
+}
+
+/* EFECTO HOVER */
+.volumlow:hover,
+.volumhigh:hover {
+  opacity: 1;
+  transform: translateY(-50%) scale(1.1);
+}
+
+
+
+ion-icon.redlow {
+  color: rgb(255, 125, 125);
+}
+ion-icon.redhigh {
+  color: red;
+}
+ion-icon.greenlow {
+  color: rgb(125, 255, 125);
+}
+ion-icon.greenhigh {
+  color: green;
+}
+.file-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  margin-right: 8px;
+}
+
+.file-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.favorite-icon {
+  font-size: 18px;
+  color: #ffc107; /* Amarillo/dorado */
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.favorite-icon:hover {
+  transform: scale(1.2);
+}
+
+ion-item .item-native {
+  --padding-start: 8px;   /* Reduce el padding izquierdo del item */
+}
+
+ion-icon[slot="start"] {
+  margin-right: 6px;      /* Ajusta margen entre icono y texto */
+}
+.played-icon {
+  font-size: 16px;
+  margin-left: 8px;
+}
+.temp-list-icon {
+  font-size: 18px;
+  margin-left: 8px;
+  cursor: pointer;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+/* Escala al hacer hover */
+.temp-list-icon:hover {
+  transform: scale(1.2);
+}
+
+/* Color más llamativo si está en lista */
+.temp-list-icon.active {
+  color: var(--ion-color-danger); /* o cualquier color llamativo */
+}

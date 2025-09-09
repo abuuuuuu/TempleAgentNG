@@ -1,0 +1,19 @@
+b  <div
+    #touchArea
+    class="circle"
+    (mousedown)="onTouchStart($event)"
+    (mousemove)="onTouchMove($event)"
+    (touchstart)="onTouchStart($event)"
+    (touchmove)="onTouchMove($event)"
+  >
+a
+
+    <div *ngIf="touchPosition" class="dot" [ngStyle]="{
+  left: touchPosition?.x + 'px', 
+  top: touchPosition?.y + 'px'
+}"></div>
+  </div>
+<!-- [ngStyle]="{
+  left: touchPosition?.x + 'px', 
+  top: touchPosition?.y + 'px'
+}" -->

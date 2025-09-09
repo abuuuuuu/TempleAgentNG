@@ -1,0 +1,7 @@
+{
+  "name": "TempleAgent",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}

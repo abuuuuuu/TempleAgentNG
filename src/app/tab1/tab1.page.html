@@ -1,0 +1,206 @@
+<ion-fab slot="fixed" vertical="top" horizontal="end">
+  <ion-fab-button size="small">
+    <ion-icon src="/svg/chevron-down-circle.svg"></ion-icon>
+  </ion-fab-button>
+  <ion-fab-list side="bottom">
+    <ion-fab-button *ngFor="let btn of fabButtons" (click)="btn.action()">
+      <ion-icon [src]="btn.icon">Text 1</ion-icon>
+    </ion-fab-button>
+  </ion-fab-list>
+</ion-fab>
+<div class="segment-container">
+  <ion-segment
+    [ngClass]="connectedSocket ? 'primer-segment connected' : 'primer-segment'"
+    (ionChange)="onSegmentChanged($event)"
+    [value]="segmentValue"
+  >
+    <ion-segment-button value="first" content-id="first">
+      <ion-label>Carpetes</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="llums" content-id="llums">
+      <ion-label>Llum</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="llista" content-id="llista">
+      <ion-label>Llista<span *ngIf="llistaCurrentMusic && llistaCurrentMusic.length && llistaCurrentMusic.length > 0"> ({{ llistaCurrentMusic.length }})</span> 
+      </ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="favorits" content-id="favorits">
+      <ion-label>Favorits<span *ngIf="musicfavorite && musicfavorite.length && musicfavorite.length > 0"> ({{ musicfavorite.length }})</span> 
+      </ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="cuatemp" content-id="cuatemp">
+      <ion-label>Cua<span *ngIf="musiccuatemp && musiccuatemp.length && musiccuatemp.length > 0"> ({{ musiccuatemp.length }})</span> 
+      </ion-label>
+    </ion-segment-button>
+  </ion-segment>
+
+  <!-- Iconos superpuestos -->
+  <ion-icon
+    src="/svg/volume-low-outline.svg"
+    class="volumlow"
+    (click)="DisminuirVolumKodi()"
+  ></ion-icon>
+
+  <ion-icon
+    src="/svg/volume-high-outline.svg"
+    class="volumhigh"
+    (click)="AugmentarVolumKodi()"
+  ></ion-icon>
+</div>
+
+<ion-segment-view class="primer-segment-view">
+  <ion-segment-content id="first">
+        <ion-content>
+          <ion-list>
+            <ion-item 
+              *ngFor="let item of llistaFiles"
+              button
+              (click)="onItemClick(item)"
+            >
+              <ion-icon
+                  class="file-icon"
+                  slot="start"
+                [src]="item.filetype === 'directory' ? '/svg/folder.svg' : '/svg/document.svg'"
+                color="primary">
+              </ion-icon>
+              <!-- Contenedor del texto + estrella -->
+              <div class="file-label">
+                <span [ngStyle]="{ 'font-weight': item.added ? 'bold' : 'normal' }">
+                  {{ getNomCurt(item.file, item.titlecustom) }}
+                </span>
+
+                <!-- Icono de favorito (estrella) -->
+                  <!-- *ngIf="item.favorite" -->
+                <ion-icon
+                  *ngIf="item.filetype !== 'directory'"
+                  class="favorite-icon"
+                  [src]="item.filetype !== 'directory' && item.favorite ? '/svg/star.svg' : '/svg/star-outline.svg'"
+                  (click)="toggleFavorite(item); $event.stopPropagation()"
+                  color="warning"
+                ></ion-icon>
+              </div>
+              <ion-note slot="end" *ngIf="item.filetype === 'file' && item.duration">
+                {{ ParseTimeDuration(item.duration) }}
+              </ion-note>
+              <!-- Icono de reproducido (a la derecha) -->
+              <ion-icon
+               *ngIf="item.played"                
+                slot="end"
+                class="played-icon"
+                src="/svg/checkmark-done-outline.svg"
+                color="success">
+              </ion-icon>
+              <!-- Icono lista temporal reproducción -->
+              <ion-icon
+                *ngIf="item.filetype !== 'directory'"
+                slot="end"
+                class="temp-list-icon"
+                [ngClass]="{ 'active': item.inTempList }"
+                [src]="item.inTempList ? '/svg/list.svg' : '/svg/list-outline.svg'"
+                (click)="toggleTempList(item); $event.stopPropagation()"
+                title="Agregar / Quitar lista temporal"
+              ></ion-icon>
+            </ion-item>
+          </ion-list>
+        </ion-content>    
+  </ion-segment-content>
+  <ion-segment-content id="llums">
+    <ion-content>
+      <app-touch-circle (focoData)="onFocoDataReceived($event)"></app-touch-circle> 
+    </ion-content>
+
+    <ion-content>
+      <ion-range [min]="minValue" [max]="maxValue" [(ngModel)]="redRange" aria-label="Dual Knobs Range" [pin]="true" [dualKnobs]="true" (ionChange)="onIonRangeChange($event,'red')">
+        <ion-icon slot="start" src="/svg/color-palette-sharp.svg" class="redlow"></ion-icon>
+        <ion-icon slot="end" src="/svg/color-palette-sharp.svg" class="redhigh"></ion-icon>
+      </ion-range>
+    </ion-content>
+    <ion-content>
+      <ion-range aria-label="Dual Knobs Range" [pin]="true" [dualKnobs]="true" [value]="{ lower: 0, upper: 255 }" (ionChange)="onIonRangeChange($event,'green')">
+        <ion-icon slot="start" src="/svg/color-palette-sharp.svg" class="greenlow"></ion-icon>
+        <ion-icon slot="end" src="/svg/color-palette-sharp.svg" class="greenhigh"></ion-icon>
+      </ion-range>
+    </ion-content>
+
+  </ion-segment-content>
+  <ion-segment-content id="llista">
+        <ion-content>
+          <ion-list>
+            <ion-item 
+              *ngFor="let item of llistaCurrentMusic; let i = index"
+              button
+              (click)="onItemPlay(item, i)"
+            >
+                {{ getNomCurt(item.file, '') }}
+              <ion-note slot="end" *ngIf="item.filetype === 'file' && item.duration">
+                {{ ParseTimeDuration(item.duration) }}
+              </ion-note>
+            </ion-item>
+          </ion-list>
+        </ion-content>    
+  </ion-segment-content>
+  <ion-segment-content id="favorits">
+        <ion-content>
+          <ion-list>
+            <ion-item 
+              *ngFor="let item of musicfavorite; let i = index"
+              button
+              (click)="onItemFavorits(item, i)"
+            >
+              <div class="file-label">
+                {{ item.nom }}
+                <ion-icon
+                  *ngIf="item.filetype !== 'directory'"
+                  class="favorite-icon"
+                  [src]="item.filetype !== 'directory' && item.favorite ? '/svg/star.svg' : '/svg/star-outline.svg'"
+                  (click)="toggleFavorite(item); $event.stopPropagation()"
+                  color="warning"
+                ></ion-icon>
+              </div>
+              <ion-note slot="end" *ngIf="item.filetype === 'file' && item.duration">
+                {{ ParseTimeDuration(item.duration) }}
+              </ion-note>
+            </ion-item>
+          </ion-list>
+        </ion-content>    
+  </ion-segment-content>
+  <ion-segment-content id="cuatemp">
+        <ion-content>
+          <ion-list>
+            <ion-item 
+              *ngFor="let item of musiccuatemp; let i = index"
+              button
+              (click)="onItemFavorits(item, i)"
+            >
+              <div class="file-label">
+                {{ item.nom }}
+                <ion-icon
+                  *ngIf="item.filetype !== 'directory'"
+                  slot="end"
+                  class="temp-list-icon"
+                  [ngClass]="{ 'active': item.inTempList }"
+                  [src]="item.inTempList ? '/svg/list.svg' : '/svg/list-outline.svg'"
+                  (click)="toggleTempList(item); $event.stopPropagation()"
+                ></ion-icon>
+              </div>
+              <ion-note slot="end" *ngIf="item.filetype === 'file' && item.duration">
+                {{ ParseTimeDuration(item.duration) }}
+              </ion-note>
+            </ion-item>
+          </ion-list>
+        </ion-content>    
+  </ion-segment-content>
+</ion-segment-view>
+ <ion-toast
+    [isOpen]="isToastOpen"
+    [message]="txtToastMessage"
+    [duration]="3000"
+    (didDismiss)="setOpenToast(false)"
+  ></ion-toast>
+<ion-alert
+  [isOpen]="isAlertOpen"
+  (didDismiss)="onAlertDidDismiss()"
+  [header]="txtAlertTitle"
+  [message]="txtAlertMessage"
+  [buttons]="alertButtons"
+></ion-alert>

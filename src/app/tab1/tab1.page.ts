@@ -21,7 +21,7 @@ import { RangeCustomEvent } from '@ionic/core';
   styleUrls: ['./tab1.page.scss'],
   imports: [
     IonicModule, 
-    ExploreContainerComponent,
+ //   ExploreContainerComponent,
     CommonModule, 
     FormsModule, 
     TouchCircleComponent // El componente ya está bien importado aquí
@@ -57,6 +57,8 @@ export class Tab1Page  implements OnInit {
   musicplayed:any[]=[];
   musicfavorite:any[]=[];
   musiccuatemp:any[]=[];
+  currentTrack: any = null;
+  isPlaying :boolean=true;
 
   fabButtons = [
     { icon: '/svg/document.svg',
@@ -70,6 +72,10 @@ export class Tab1Page  implements OnInit {
   @ViewChild('touchArea') touchArea!: ElementRef;
   touchPosition: { x: number, y: number } | null = null;
 
+  urlKodi :string='';
+  urlSocketKodi :string='';
+  urlDMX :string='';
+
   constructor(private dataService: KodiService,private kodiSocket: KodiSocketService,private dmxService: DMXService,private storage: StorageService) {
     console.log('Tab1Page cargado');
   }
@@ -77,8 +83,14 @@ export class Tab1Page  implements OnInit {
   TestFuncio() {
     console.log("TestFuncio");
   }
-
   ngOnInit() {
+    this.urlKodi =this.kodiSocket.url;
+    this.urlSocketKodi =this.dataService.apiUrl;
+    this.urlDMX =this.dmxService.apiUrl;
+    setTimeout(() => {  
+    this.setOpenToast(true, 'Prova de missatge');
+    }, 1000);
+    
     this.kodiSocket.onConnected$.subscribe((event) => {
       this.onConnectedSocketReceived(event);
       console.log('Prova socket:' ,event);
@@ -155,13 +167,22 @@ export class Tab1Page  implements OnInit {
             //self.pAddExtraDataLlistaFiles();
           //}
         }
-        if (msg.method === 'Player.OnPlay') {
-          if (msg.params.data && msg.params.data.item && msg.params.data.item.playlistid === self.playlistIdMusic) {
-            let itemPos = self.llistaCurrentMusic[msg.params.data.item.position];
-            itemPos.nomcurt = self.getNomCurt(itemPos.file,itemPos.titlecustom);
-            this.musicplayed.push(itemPos);
-            this.storage.set('musicplayed', this.musicplayed);
-          }
+
+      }
+      if (msg.method==='Application.OnVolumeChanged') {
+        console.log('Volum canviat:', msg.params.data.volume);
+        if (msg.params.data.muted) {
+          self.setOpenToast(true, 'Volum mut');
+        }else{
+          self.setOpenToast(true, `Volum: ${msg.params.data.volume}`);
+        }
+      }
+      if (msg.method === 'Player.OnPlay') {
+        if (msg.params.data && msg.params.data.item && msg.params.data.item.playlistid === self.playlistIdMusic) {
+          let itemPos = self.llistaCurrentMusic[msg.params.data.item.position];
+          itemPos.nomcurt = self.getNomCurt(itemPos.file,itemPos.titlecustom);
+          this.musicplayed.push(itemPos);
+          this.storage.set('musicplayed', this.musicplayed);
         }
       }
       this.eventos.unshift(msg);
@@ -557,6 +578,21 @@ private RefrescarLlistaFiles(llista : any[]) : any[] {
       err => console.error('Error en la petición:', err)
     );
   }
+  playPrevious() {
+    this.kodiSocket.sendMessage('Player.GoTo', { playerid: 0, to: 'previous' });
+  }
+  
+  playNext() {
+    this.kodiSocket.sendMessage('Player.GoTo', { playerid: 0, to: 'next' });
+  }
+  togglePlayPause() {
+    this.kodiSocket.sendMessage('Player.PlayPause', { playerid: 0 });
+  }
+  stopPlayback() {
+    this.kodiSocket.sendMessage('Player.Stop', { playerid: 0 });
+  }
+
+
 
   // onTouchStart(event: MouseEvent | TouchEvent) {
   //   event.preventDefault();

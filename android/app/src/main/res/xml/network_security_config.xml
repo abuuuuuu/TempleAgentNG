@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+  <domain-config cleartextTrafficPermitted="true">
+    <domain includeSubdomains="true">localhost</domain>
+    <domain includeSubdomains="true">192.168.0.0</domain> <!-- Si et connectes a IPs LAN -->
+    <domain includeSubdomains="true">10.0.2.2</domain> <!-- Per emuladors -->
+    <domain includeSubdomains="true">api.example.com</domain> <!-- El teu backend si no és HTTPS -->
+  </domain-config>
+  <base-config cleartextTrafficPermitted="true" />
+</network-security-config>

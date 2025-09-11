@@ -1,3 +1,9 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title></ion-title>
+  </ion-toolbar>
+</ion-header>
+
 <ion-fab slot="fixed" vertical="top" horizontal="end">
   <ion-fab-button size="small">
     <ion-icon src="/svg/chevron-down-circle.svg"></ion-icon>
@@ -105,6 +111,12 @@
         </ion-content>    
   </ion-segment-content>
   <ion-segment-content id="llums">
+  <ion-label class="status-label" [ngClass]="connectedSocket ? 'connected' : 'disconnected'">
+    {{ connectedSocket ? 'Connectat a Kodi' : 'Desconnectat de Kodi' }}
+    {{urlKodi}}
+    {{urlSocketKodi}}
+    {{urlDMX}}
+  </ion-label>
     <ion-content>
       <app-touch-circle (focoData)="onFocoDataReceived($event)"></app-touch-circle> 
     </ion-content>
@@ -149,17 +161,18 @@
             >
               <div class="file-label">
                 {{ item.nom }}
-                <ion-icon
-                  *ngIf="item.filetype !== 'directory'"
-                  class="favorite-icon"
-                  [src]="item.filetype !== 'directory' && item.favorite ? '/svg/star.svg' : '/svg/star-outline.svg'"
-                  (click)="toggleFavorite(item); $event.stopPropagation()"
-                  color="warning"
-                ></ion-icon>
               </div>
               <ion-note slot="end" *ngIf="item.filetype === 'file' && item.duration">
                 {{ ParseTimeDuration(item.duration) }}
               </ion-note>
+                <ion-icon
+                  *ngIf="item.filetype !== 'directory'"
+                  class="close"
+                  slot="end"
+                  src="/svg/close-outline.svg"
+                  (click)="toggleFavorite(item); $event.stopPropagation()"
+                  color="danger"
+                ></ion-icon>
             </ion-item>
           </ion-list>
         </ion-content>    
@@ -191,6 +204,34 @@
         </ion-content>    
   </ion-segment-content>
 </ion-segment-view>
+<ion-footer>
+  <ion-toolbar>
+    <ion-title>
+      <div class="footer-content">
+        <div class="track-info" *ngIf="currentTrack">
+          <div class="track-details">
+            <span class="track-title">{{ currentTrack.title }}</span>
+            <span class="track-artist" *ngIf="currentTrack.artist && currentTrack.artist.length > 0"> - {{ currentTrack.artist[0] }}</span>
+          </div>
+          <div class="track-album" *ngIf="currentTrack.album">{{ currentTrack.album }}</div>
+        </div>
+        
+        <div class="playback-controls">
+          <ion-button fill="clear" (click)="playPrevious()">
+            <ion-icon slot="icon-only" src="svg/play-skip-back-outline.svg"></ion-icon>
+          </ion-button>
+          <ion-button fill="clear" (click)="togglePlayPause()">
+            <ion-icon slot="icon-only" [src]="isPlaying ? 'svg/pause.svg' : 'svg/play.svg'"></ion-icon>
+          </ion-button>
+          <ion-button fill="clear" (click)="playNext()">
+            <ion-icon slot="icon-only" src="svg/play-skip-forward-outline.svg"></ion-icon>
+          </ion-button>
+        </div>
+      </div>
+    </ion-title>
+  </ion-toolbar>
+</ion-footer>
+
  <ion-toast
     [isOpen]="isToastOpen"
     [message]="txtToastMessage"

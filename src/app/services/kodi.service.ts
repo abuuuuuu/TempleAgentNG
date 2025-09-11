@@ -11,9 +11,10 @@ private propertiesmovies = ["playlistid","speed","position","totaltime","time","
 private propertiesaudio = ["playlistid","speed","position","totaltime","time","percentage"];
 
 
-private apiUrl = environment.production
+public apiUrl = environment.production
   ? 'http://192.168.1.100:8080/jsonrpc' // Producción (APK)
   : '/kodi/jsonrpc';                    // Desarrollo (proxy)
+// public apiUrl = 'http://192.168.1.100:8080/jsonrpc' // Producción (APK)
 
   constructor(private http: HttpClient) {
      console.log('Inici');

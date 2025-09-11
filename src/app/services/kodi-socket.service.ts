@@ -22,7 +22,7 @@ export class KodiSocketService {
   private messagesSubject$ = new Subject<any>();
   private reconnectAttempts = 0;
   private numidrequestkodi = 0;
-  private url ='ws://192.168.1.100:9080/jsonrpc';
+  public url ='ws://192.168.1.100:9080/jsonrpc';
 
   
   constructor(private dataService: KodiService) {

@@ -1,17 +1,22 @@
-import { Component, OnInit,ElementRef, ViewChild, NgModule } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { IonButton, IonContent } from '@ionic/angular/standalone';
+import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Component, ViewEncapsulation } from '@angular/core';
+import {  OnInit,ElementRef, ViewChild } from '@angular/core';
+//import { IonButton, IonContent } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
-import { KodiService } from '../services/kodi.service'; 
+//import { KodiService } from '../services/kodi.service'; 
 import { DMXService } from '../services/dmx.service'; 
-import { IonicModule } from '@ionic/angular';
-import { FormsModule } from '@angular/forms';
+//import { IonicModule } from '@ionic/angular';
+//import { FormsModule } from '@angular/forms';
 import { KodiSocketService } from '../services/kodi-socket.service';
 import { Subscription } from 'rxjs';
 import { TouchCircleComponent } from '../touch-circle/touch-circle.component'; // Importa el componente
-import { ExploreContainerComponent } from '../explore-container/explore-container.component'; // Ajusta el path si cal
+//import { ExploreContainerComponent } from '../explore-container/explore-container.component'; // Ajusta el path si cal
 import { StorageService } from '../services/storage.service';
 import { RangeCustomEvent } from '@ionic/core';
+//import { Http } from '@capacitor-community/http';
+import { IonFab,IonFabButton,IonFabList } from '@ionic/angular/standalone';
+import { ActionSheetController } from '@ionic/angular';
+import { IonActionSheet, IonButton } from '@ionic/angular/standalone';
 
 //ionic serve --proxy-config proxy.conf.json
 @Component({
@@ -20,13 +25,16 @@ import { RangeCustomEvent } from '@ionic/core';
   templateUrl: './tab1.page.html',
   styleUrls: ['./tab1.page.scss'],
   imports: [
-    IonicModule, 
+    //IonicModule, 
  //   ExploreContainerComponent,
     CommonModule, 
-    FormsModule, 
-    TouchCircleComponent // El componente ya está bien importado aquí
-  ]
-})
+    //FormsModule, 
+    TouchCircleComponent,
+    IonFab,IonFabButton,IonFabList,IonActionSheet, IonButton
+  ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
+  encapsulation: ViewEncapsulation.Emulated  // Asegúrate de que la encapsulación sea emulada (que es la predeterminada)
+  })
 
 export class Tab1Page  implements OnInit {
   Data: any;
@@ -59,15 +67,38 @@ export class Tab1Page  implements OnInit {
   musiccuatemp:any[]=[];
   currentTrack: any = null;
   isPlaying :boolean=true;
-
+  
   fabButtons = [
-    { icon: '/svg/document.svg',
+    { icon: 'assets/svg/document.svg',
       action: () => this.TestFuncio()
     },
-    { icon: '/svg/color-palette.svg',
+    { icon: 'assets/svg/color-palette.svg',
       action: () => this.TestFuncio()
     }
   ];  
+  isActionSheetOpen = false;
+  public actionSheetButtons = [
+    {
+      text: 'Delete',
+      role: 'destructive',
+      data: {
+        action: 'delete',
+      },
+    },
+    {
+      text: 'Share',
+      data: {
+        action: 'share',
+      },
+    },
+    {
+      text: 'Cancel',
+      role: 'cancel',
+      data: {
+        action: 'cancel',
+      },
+    },
+  ];
 
   @ViewChild('touchArea') touchArea!: ElementRef;
   touchPosition: { x: number, y: number } | null = null;
@@ -76,20 +107,18 @@ export class Tab1Page  implements OnInit {
   urlSocketKodi :string='';
   urlDMX :string='';
 
-  constructor(private dataService: KodiService,private kodiSocket: KodiSocketService,private dmxService: DMXService,private storage: StorageService) {
+  constructor(private kodiSocket: KodiSocketService,private dmxService: DMXService,private storage: StorageService,private actionSheetCtrl: ActionSheetController) {
     console.log('Tab1Page cargado');
   }
 
   TestFuncio() {
     console.log("TestFuncio");
   }
+
   ngOnInit() {
     this.urlKodi =this.kodiSocket.url;
-    this.urlSocketKodi =this.dataService.apiUrl;
+    //this.urlSocketKodi =this.dataService.apiUrl;
     this.urlDMX =this.dmxService.apiUrl;
-    setTimeout(() => {  
-    this.setOpenToast(true, 'Prova de missatge');
-    }, 1000);
     
     this.kodiSocket.onConnected$.subscribe((event) => {
       this.onConnectedSocketReceived(event);
@@ -193,11 +222,29 @@ export class Tab1Page  implements OnInit {
     this.kodiSocket.disconnect();
 //    this.dmxService.SetDMX('u=3&d=0,0');
   }
+
   ngAfterViewInit() {
     // Forzar asignación después de la carga completa de la vista
     setTimeout(() => {
       this.redRange = { lower: 100, upper: 150 };
     });
+  }
+  treureItemCurrentMusic(item: any) { 
+    let self = this;
+    const index = this.llistaCurrentMusic.indexOf(item);
+    if (index > -1) {
+      this.kodiSocket.sendMessage('Playlist.Remove',
+        {
+          playlistid: self.playlistIdMusic,
+          position: index
+        });
+    }
+  }
+  get totalDuration(): number {
+    return this.llistaCurrentMusic.reduce((sum, item) => sum + item.duration, 0);
+  }
+  setOpenActionSheet(isOpen: boolean) {
+    this.isActionSheetOpen = isOpen;
   }
   private loadFromStorage(key: string, defaultValue: any, callback: (data: any) => void): void {
     this.storage.get(key).then(datos => {
@@ -229,7 +276,7 @@ export class Tab1Page  implements OnInit {
     this.segmentValue = event.detail.value;
     if (this.segmentValue === 'llista') {
       this.fabButtons = [
-        { icon: '/svg/trash-outline.svg',
+        { icon: 'assets/svg/trash-outline.svg',
           action: () => this.ClearPlaylistMusicCurrent()
         }
       ];  
@@ -488,7 +535,13 @@ private RefrescarLlistaFiles(llista : any[]) : any[] {
       {
 		    media:'music'
 	    }, (response: any) => {
-        console.log('Resposta del socket:', response);
+        console.log('Resposta del socket 2:', response);
+        if (response.error) {
+          // Si hay un error en la respuesta
+          console.error('Error en la respuesta del socket:', response.error);
+          // Aquí puedes manejar el error de la manera que quieras
+          return;  // Termina la ejecución en caso de error
+        }
         const tempSources = (response.result.sources || []).map((item: any) => ({
           ...item,
           filetype: 'directory',
@@ -566,18 +619,22 @@ private RefrescarLlistaFiles(llista : any[]) : any[] {
     // Por ejemplo, pasar los datos al servicio DMX
     this.dmxService.SetDMX(`u=1&d=${focoData.pan},0,${focoData.tilt}`);
   }
-  sendTestMessage() {
-    const payload = {
-      jsonrpc: "2.0",
-      method: "Input.Up",
-      id: 1,
-      params: {}
-    };
-    this.dataService.sendMessage(payload).subscribe(
-      res => console.log('Respuesta Input.Up:' + res), //this.Data = res,
-      err => console.error('Error en la petición:', err)
-    );
-  }
+  // sendTestMessage() {
+  //   const payload = {
+  //     jsonrpc: "2.0",
+  //     method: "Input.Up",
+  //     id: 1,
+  //     params: {}
+  //   };
+  //   this.dataService.sendMessage(payload)
+  //   .then(res => {
+  //     console.log('Respuesta Input.Up:', res);
+  //     // this.Data = res;
+  //   })
+  //   .catch(err => {
+  //     console.error('Error en la petición:', err);
+  //   });
+  // }
   playPrevious() {
     this.kodiSocket.sendMessage('Player.GoTo', { playerid: 0, to: 'previous' });
   }

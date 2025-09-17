@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Http } from '@capacitor-community/http';
 import { environment } from '../../environments/environment';
 
 @Injectable({
@@ -7,24 +7,41 @@ import { environment } from '../../environments/environment';
 })
 export class KodiService {
 
-private propertiesmovies = ["playlistid","speed","position","totaltime","time","percentage","shuffled","repeat","canrepeat","canshuffle","canseek","partymode"];
-private propertiesaudio = ["playlistid","speed","position","totaltime","time","percentage"];
+  private propertiesmovies = ["playlistid","speed","position","totaltime","time","percentage","shuffled","repeat","canrepeat","canshuffle","canseek","partymode"];
+  private propertiesaudio = ["playlistid","speed","position","totaltime","time","percentage"];
 
+  public apiUrl = environment.production
+    ? 'https://192.168.1.100/jsonrpc' // Producción (APK)
+    : '/kodi/jsonrpc';                    // Desarrollo (proxy)
 
-public apiUrl = environment.production
-  ? 'http://192.168.1.100:8080/jsonrpc' // Producción (APK)
-  : '/kodi/jsonrpc';                    // Desarrollo (proxy)
-// public apiUrl = 'http://192.168.1.100:8080/jsonrpc' // Producción (APK)
-
-  constructor(private http: HttpClient) {
-     console.log('Inici');
+  constructor() {
+    console.log('Inici');
   }
 
+  async sendMessage(payload: any): Promise<any> {
+    return;
+    console.log('Payload enviado:', JSON.stringify(payload, null, 2));
+    try {
+      // Realiza la solicitud POST usando el plugin HTTP de Capacitor
+      const response = await Http.post({
+        url: this.apiUrl,
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        data: payload
+      });
 
-  sendMessage(payload: any) {
-    const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-console.log('Payload enviado:', JSON.stringify(payload, null, 2));
+      // Verificar el estado de la respuesta
+      if (response.status !== 200) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
-    return this.http.post<any[]>(this.apiUrl, JSON.stringify(payload), { headers });
+      // Retornar los datos de la respuesta
+      return response.data;
+    } catch (error) {
+      console.error('Error en llamada HTTP (HTTP plugin):', error);
+      throw error;
+    }
   }
+
 }

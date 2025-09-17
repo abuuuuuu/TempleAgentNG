@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { AlertController } from '@ionic/angular';
 import { IonicModule } from '@ionic/angular';
-import { TouchCircleComponent } from 'src/app/touch-circle/touch-circle.component';// '../touch-circle/touch-circle.component'; // Importa el componente
+//import { TouchCircleComponent } from 'src/app/touch-circle/touch-circle.component';// '../touch-circle/touch-circle.component'; // Importa el componente
 
 @Component({
   selector: 'app-prova-screen-begin',
@@ -10,7 +10,7 @@ import { TouchCircleComponent } from 'src/app/touch-circle/touch-circle.componen
 //  styleUrls: ['./prova-screen-begin.page.scss'],
   imports: [
     IonicModule,
-    TouchCircleComponent // Asegúrate de importar el componente aquí
+//    TouchCircleComponent // Asegúrate de importar el componente aquí
     ]
 })
 export class ProvaScreenBegin {

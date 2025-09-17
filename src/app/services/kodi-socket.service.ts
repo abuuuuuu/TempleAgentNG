@@ -21,10 +21,12 @@ export class KodiSocketService {
   private socket: WebSocket | null = null;
   private messagesSubject$ = new Subject<any>();
   private reconnectAttempts = 0;
-  private numidrequestkodi = 0;
+  private numidrequestkodisocket = 1;
   public url ='ws://192.168.1.100:9080/jsonrpc';
 
-  
+  private requestCallbacks: { [id: number]: (response: any) => void } = {};
+  //private requestId = 1;
+
   constructor(private dataService: KodiService) {
   }
 
@@ -46,7 +48,12 @@ export class KodiSocketService {
     this.socket.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        this.messagesSubject$.next(data);
+        if (data.id && this.requestCallbacks[data.id]) {
+          this.requestCallbacks[data.id](data);
+          delete this.requestCallbacks[data.id]; // Limpieza
+        } else {
+          this.messagesSubject$.next(data);
+        }        
       } catch (e) {
         console.error('[KodiSocket] Error parseando mensaje:', e);
       }
@@ -69,47 +76,54 @@ export class KodiSocketService {
     };
   }
 
-  private pGetRequestKodi(method: string, params: any): RequestKODI {
+  private pGetRequestKodi(method: string, params: any, id:number): RequestKODI {
     const requestkodi: RequestKODI = {
       jsonrpc: "2.0",
       method: method,
-      id: this.numidrequestkodi,
+      id: id,
       params: params
     };
     console.log('Request KODI 2:', requestkodi);
-    this.numidrequestkodi = this.numidrequestkodi + 1;
+    //this.numidrequestkodi = this.numidrequestkodi + 1;
     return requestkodi;
   }
-  private pGetRequestKodiString(method: string, params: any): string {
-    return JSON.stringify(this.pGetRequestKodi(method, params));
-  }
+  // private pGetRequestKodiString(method: string, params: any, id: number): string {
+  //   return JSON.stringify(this.pGetRequestKodi(method, params,id));
+  // }
 
   private pHasSocketOpen(): boolean {
     return this.socket !== null && this.socket.readyState === WebSocket.OPEN;
   }
 
-  private pSendMessage(method: string,message: any) {
-    if (this.socket && this.pHasSocketOpen()) {
-      this.socket.send(this.pGetRequestKodiString(method,message));
-    } else {
+private pSendMessage(method: string, message: any, callback?: (response: any) => void) {
+  if (this.socket && this.pHasSocketOpen()) {
+    const id = this.numidrequestkodisocket++;
+    const request = this.pGetRequestKodi(method, message, id);
+    if (callback) {
+      this.requestCallbacks[id] = callback;
+    }
+    this.socket.send(JSON.stringify(request));
+  } else {
       console.error('[KodiSocket] No se puede enviar el mensaje, WebSocket no está conectado');
     }
   }
 
   sendMessage(method: string,message: any, callback?: (response: any) => void) {
-    if (((method.length>7 && method.substring(0,6)=='Input.') ||
-        (!(callback && typeof callback=='function'))) && 
-      this.pHasSocketOpen()) {
-      //
-      this.pSendMessage(method,message);
-      return;
-    }
-    this.dataService.sendMessage(this.pGetRequestKodi(method,message)).subscribe(
-      (response) => { 
-        if (callback) { callback(response); }
-      },
-      (error) => { console.error('[KodiSocket] Error en la petición HTTP:', error); }
-    );
+    this.pSendMessage(method,message,callback);
+    // if (((method.length>7 && method.substring(0,6)=='Input.') ||
+    //     (!(callback && typeof callback=='function'))) && 
+    //   this.pHasSocketOpen()) {
+    //   //
+    //   this.pSendMessage(method,message);
+    //   return;
+    // }
+    // this.dataService.sendMessage(this.pGetRequestKodi(method,message))
+    // .then((response) => {
+    //   if (callback) { callback(response); }
+    // })
+    // .catch((error) => {
+    //   console.error('[KodiSocket] Error en la petición HTTP (nova versió):', error);
+    // });
   }
   
   getMessages(): Observable<any> {

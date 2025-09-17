@@ -34,4 +34,34 @@
 
 /* @import "@ionic/angular/css/palettes/dark.always.css"; */
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
-@import '@ionic/angular/css/palettes/dark.system.css';
+//@import '@ionic/angular/css/palettes/dark.system.css';
+
+
+// Global o en el componente
+.my-custom-action-sheet {
+  --background: #fefefe;
+  --button-background: #ffffff;
+  --button-color: #333;
+  --border-radius: 16px;
+  --max-width: 400px;
+  --width: 90%;
+  padding: 10px;
+
+  .action-sheet-group {
+    padding: 8px;
+  }
+
+  .action-edit-btn {
+    color: #007bff;
+    font-weight: bold;
+  }
+
+  .action-delete-btn {
+    color: #e74c3c;
+  }
+
+  .action-cancel-btn {
+    color: #999;
+    font-style: italic;
+  }
+}

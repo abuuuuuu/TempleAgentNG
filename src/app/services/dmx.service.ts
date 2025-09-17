@@ -8,7 +8,7 @@ import { environment } from '../../environments/environment';
 export class DMXService {
 
 public apiUrl = environment.production
-  ? 'http://192.168.1.100:9090/set_dmx' // Producción (APK)
+  ? 'https://192.168.1.100/set_dmx' // Producción (APK)
   :  '/dmx/set_dmx';                    // Desarrollo (proxy)
 
   constructor(private http: HttpClient) {

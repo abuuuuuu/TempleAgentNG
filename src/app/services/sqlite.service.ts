@@ -19,7 +19,7 @@ export class SqliteService {
 
   async init() {
     try {
-      const db = await this.sqlite.createConnection("mi_db", false, "no-encryption", 1);
+      const db = await this.sqlite.createConnection("mi_db", false, "no-encryption", 1,false);
       await db.open();
       this.db = db;
 

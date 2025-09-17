@@ -117,17 +117,20 @@ ion-icon.greenhigh {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-
-.favorite-icon {
-  font-size: 18px;
-  color: #ffc107; /* Amarillo/dorado */
+.icon-list{
+  font-size: 24px;
+  height: 24px;
+  width: 24px;
   cursor: pointer;
   transition: transform 0.2s ease;
 }
-
-.favorite-icon:hover {
+.icon-list:hover {
   transform: scale(1.2);
 }
+.favorite-icon {
+  color: #ffc107; /* Amarillo/dorado */
+}
+
 
 ion-item .item-native {
   --padding-start: 8px;   /* Reduce el padding izquierdo del item */
@@ -141,18 +144,130 @@ ion-icon[slot="start"] {
   margin-left: 8px;
 }
 .temp-list-icon {
-  font-size: 18px;
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
   margin-left: 8px;
   cursor: pointer;
   transition: transform 0.2s ease, color 0.2s ease;
 }
+// .icon-hover{
+//   cursor: pointer;
+// }
+// .icon-hover:hover {
+//   color: var(--ion-color-primary);
+//   transform: scale(1.2);
+// }
 
 /* Escala al hacer hover */
-.temp-list-icon:hover {
-  transform: scale(1.2);
-}
+// .temp-list-icon:hover {
+//   transform: scale(1.2);
+// }
 
 /* Color más llamativo si está en lista */
 .temp-list-icon.active {
   color: var(--ion-color-danger); /* o cualquier color llamativo */
+}
+/* Efecto al hacer clic */
+.item-clicked {
+  background-color: #e0f7fa;  /* Fondo claro al hacer clic */
+  color: #00796b;  /* Cambia el color del texto */
+}
+
+.item-clicked ion-icon {
+  color: #00796b;  /* Cambia el color del icono */
+}
+
+/* Efecto de desvanecimiento */
+.fade-effect {
+  transition: background-color 0.3s ease, opacity 0.3s ease;
+  background-color: rgba(0, 150, 136, 0.1);  /* Fondo semitransparente al hacer clic */
+}
+
+/* Para aplicar un fondo cuando el ítem es clicado */
+ion-item.item-clicked {
+  background-color: rgba(0, 150, 136, 0.2);  /* Ajuste el fondo si quieres hacerlo más notorio */
+  opacity: 1;
+}
+
+/* Efecto adicional de transición */
+ion-item.fade-effect {
+  transition: opacity 0.3s ease, transform 0.2s ease-in-out;
+}
+
+ion-item.fade-effect:active {
+  transform: scale(1.05);  /* Aumentar ligeramente el tamaño del ítem cuando está siendo clicado */
+  opacity: 0.8;  /* Desvanecer un poco */
+}
+
+ion-fab-button {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+ion-fab-button:hover {
+  transform: scale(1.1);  /* Escala ligera */
+  box-shadow: 0 4px 8px rgba(0, 150, 136, 0.3);  /* Sombra al pasar el mouse */
+}
+.primer-segment.connected ion-segment-button {
+  background-color: #4caf50;  /* Verde si está conectado */
+}
+
+.primer-segment.disconnected ion-segment-button {
+  background-color: #f44336;  /* Rojo si está desconectado */
+}
+
+.primer-segment ion-segment-button {
+  transition: background-color 0.3s ease;
+}
+ion-icon {
+  transition: transform 0.3s ease-in-out;
+}
+
+ion-icon:active {
+  transform: scale(1.2);  /* Aumentar el tamaño del icono al hacer clic */
+}
+ion-toast {
+  --background: #00796b;  /* Fondo del toast */
+  --color: white;  /* Color del texto */
+  --border-radius: 10px;
+  padding: 10px;
+}
+.footer-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 16px;
+  position: relative; // necesario para posicionar los controles en absoluto
+}
+
+.track-info {
+  text-align: center;
+  font-size: 14px;
+}
+
+.track-details {
+  font-weight: bold;
+}
+
+.playlist-controls-row {
+  position: relative; // contenedor relativo
+  height: 48px; // ajusta según tamaño de los botones
+}
+
+.playlist-total {
+  font-size: 18px;
+  color: #666;
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.playback-controls {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  gap: 24px;
 }

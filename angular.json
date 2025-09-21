@@ -36,17 +36,7 @@
     ],
     "styles": [
       "src/global.scss",
-      "src/theme/variables.scss",
-            "node_modules/@ionic/angular/css/core.css",
-  "node_modules/@ionic/angular/css/normalize.css",
-  "node_modules/@ionic/angular/css/structure.css",
-  "node_modules/@ionic/angular/css/typography.css",
-  "node_modules/@ionic/angular/css/padding.css",
-  "node_modules/@ionic/angular/css/flex-utils.css",
-  "node_modules/@ionic/angular/css/display.css",
-  "node_modules/@ionic/angular/css/text-alignment.css",
-  "node_modules/@ionic/angular/css/text-transformation.css",
-  "node_modules/@ionic/angular/css/float-elements.css"
+      "src/theme/variables.scss"
     ],
     "scripts": []
   },
@@ -119,17 +109,7 @@
                 "output": "assets"
               }
             ],
-            "styles": ["src/global.scss", "src/theme/variables.scss",
-            "node_modules/@ionic/angular/css/core.css",
-  "node_modules/@ionic/angular/css/normalize.css",
-  "node_modules/@ionic/angular/css/structure.css",
-  "node_modules/@ionic/angular/css/typography.css",
-  "node_modules/@ionic/angular/css/padding.css",
-  "node_modules/@ionic/angular/css/flex-utils.css",
-  "node_modules/@ionic/angular/css/display.css",
-  "node_modules/@ionic/angular/css/text-alignment.css",
-  "node_modules/@ionic/angular/css/text-transformation.css",
-  "node_modules/@ionic/angular/css/float-elements.css"
+            "styles": ["src/global.scss", "src/theme/variables.scss"
 ],
             "scripts": []
           },

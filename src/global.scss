@@ -36,6 +36,25 @@
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 //@import '@ionic/angular/css/palettes/dark.system.css';
 
+@import url('app/tab1/tab1.page.scss');
+@import url('app/tab1/tab1bis.page.scss');
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+ion-app,
+ion-router-outlet,
+app-root,
+ion-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+
 
 // Global o en el componente
 .my-custom-action-sheet {

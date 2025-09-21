@@ -1,7 +1,6 @@
-import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { Component, ViewEncapsulation } from '@angular/core';
+import { IonInput } from '@ionic/angular/standalone';
 import {  OnInit,ElementRef, ViewChild } from '@angular/core';
-//import { IonButton, IonContent } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 //import { KodiService } from '../services/kodi.service'; 
 import { DMXService } from '../services/dmx.service'; 
@@ -16,21 +15,35 @@ import { RangeCustomEvent } from '@ionic/core';
 //import { Http } from '@capacitor-community/http';
 import { IonFab,IonFabButton,IonFabList } from '@ionic/angular/standalone';
 import { ActionSheetController } from '@ionic/angular';
-import { IonActionSheet, IonButton } from '@ionic/angular/standalone';
+import { IonActionSheet, IonButton,IonAlert } from '@ionic/angular/standalone';
+//import { ChangeDetectorRef } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 
 //ionic serve --proxy-config proxy.conf.json
 @Component({
   selector: 'app-tab1',
   standalone: true,
   templateUrl: './tab1.page.html',
-  styleUrls: ['./tab1.page.scss'],
+//  styleUrls: ['./tab1.page.scss'],
+  styles: [`
+    :host {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    ion-content {
+      flex: 1 1 auto;
+    }
+  `],
   imports: [
     //IonicModule, 
  //   ExploreContainerComponent,
     CommonModule, 
     //FormsModule, 
-    TouchCircleComponent,
-    IonFab,IonFabButton,IonFabList,IonActionSheet, IonButton
+    TouchCircleComponent,FormsModule,
+    IonFab,IonFabButton,IonFabList,IonActionSheet, IonButton,IonAlert
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   encapsulation: ViewEncapsulation.Emulated  // Asegúrate de que la encapsulación sea emulada (que es la predeterminada)
@@ -67,15 +80,18 @@ export class Tab1Page  implements OnInit {
   musiccuatemp:any[]=[];
   currentTrack: any = null;
   isPlaying :boolean=true;
+  private progressInterval: any = null;
+  progressPercent = 0;
+  searchText: string = '';
+  isSearchOpen: boolean = false;
+
   
   fabButtons = [
-    { icon: 'assets/svg/document.svg',
-      action: () => this.TestFuncio()
-    },
-    { icon: 'assets/svg/color-palette.svg',
-      action: () => this.TestFuncio()
+    { icon: 'assets/svg/search.svg',
+      action: () => this.openSearch()
     }
   ];  
+  
   isActionSheetOpen = false;
   public actionSheetButtons = [
     {
@@ -101,13 +117,20 @@ export class Tab1Page  implements OnInit {
   ];
 
   @ViewChild('touchArea') touchArea!: ElementRef;
+  @ViewChild(IonInput) searchInput!: IonInput;
   touchPosition: { x: number, y: number } | null = null;
 
   urlKodi :string='';
   urlSocketKodi :string='';
   urlDMX :string='';
 
-  constructor(private kodiSocket: KodiSocketService,private dmxService: DMXService,private storage: StorageService,private actionSheetCtrl: ActionSheetController) {
+  constructor(
+    private kodiSocket: KodiSocketService,
+    private dmxService: DMXService,
+    private storage: StorageService,
+    private actionSheetCtrl: ActionSheetController,
+//    private cdr: ChangeDetectorRef 
+) {
     console.log('Tab1Page cargado');
   }
 
@@ -131,9 +154,11 @@ export class Tab1Page  implements OnInit {
 
     this.loadFromStorage('musicfavorite', [], (data) => {
       this.musicfavorite = data;
+      this.musicfavorite=this.RefrescarLlistaFiles(self.musicfavorite);
     });
     this.loadFromStorage('musiccuatemp', [], (data) => {
       this.musiccuatemp = data;
+      this.musiccuatemp=this.RefrescarLlistaFiles(self.musiccuatemp);
     });
     // Proves del servei d'emmagatzematge
     // this.storage.get('mi-json').then(datos => {
@@ -192,6 +217,9 @@ export class Tab1Page  implements OnInit {
             self.LoadPlaylistMusicCurrent(msg.params?.data);
             if (msg.method === 'Playlist.OnClear') {
               self.setOpenToast(true, 'Llista buidada');
+              self.currentTrack = null;
+              self.stopProgressUpdater();
+              self.progressPercent = 0;
             }
             //self.pAddExtraDataLlistaFiles();
           //}
@@ -212,6 +240,20 @@ export class Tab1Page  implements OnInit {
           itemPos.nomcurt = self.getNomCurt(itemPos.file,itemPos.titlecustom);
           this.musicplayed.push(itemPos);
           this.storage.set('musicplayed', this.musicplayed);
+          this.setOpenToast(true, `Reproduint: ${itemPos.nomcurt}`);
+        }
+      }
+      if (msg.method === 'Player.OnStop') {  
+        this.getCurrentPlayingSong(true);
+      }
+      if (msg.method === 'Player.OnPlay' || 
+        msg.method === 'Player.OnPause' || 
+        msg.method === 'Player.OnResume' || 
+        msg.method === 'Player.OnSeek' || 
+        msg.method === 'Player.OnSpeedChanged') {
+        if (msg.params.data && msg.params.data.player && msg.params.data.player.playerid === self.playlistIdMusic) {
+          console.log('Player event:', msg.method);
+          this.getCurrentPlayingSong(msg.method === 'Player.OnStop' ? true : false);
         }
       }
       this.eventos.unshift(msg);
@@ -241,8 +283,29 @@ export class Tab1Page  implements OnInit {
     }
   }
   get totalDuration(): number {
-    return this.llistaCurrentMusic.reduce((sum, item) => sum + item.duration, 0);
+    return this.llistaCurrentMusic.reduce((sum, item) => {
+      const dur = Number(item.duration);
+      return sum + (isNaN(dur) || !dur ? 0 : dur);
+    }, 0);
   }
+  
+  get filteredllistaFiles() {
+    if (!this.searchText.trim()) {
+      return this.llistaFiles;
+    }
+
+    const lower = this.searchText.toLowerCase();
+    return this.llistaFiles.filter(file =>
+      this.getNomCurt(file.file,'').toLowerCase().includes(lower)
+    );
+  }
+  openSearch() {
+    this.isSearchOpen = true;
+  }
+
+  closeSearch() {
+    this.isSearchOpen = false;
+  }  
   setOpenActionSheet(isOpen: boolean) {
     this.isActionSheetOpen = isOpen;
   }
@@ -255,6 +318,77 @@ export class Tab1Page  implements OnInit {
       }
     });
   }
+  getCurrentPlayingSong(isStop: boolean = false) {
+    let self = this;
+    if (isStop) {
+      self.isPlaying = false;
+      self.currentTrack = null;
+      console.log('Reproducció aturada');
+    }
+    this.kodiSocket.sendMessage('Player.GetActivePlayers', {}, (playersResp: any) => {
+      const musicPlayer = (playersResp.result || []).find((p: any) => p.type === 'audio' && p.playerid === this.playlistIdMusic);
+      if (musicPlayer) {
+        this.kodiSocket.sendMessage('Player.GetItem', 
+          { 
+            playerid: musicPlayer.playerid,
+            properties: ["file", "duration"]
+          }, 
+          (itemResp: any) => {
+          if (itemResp.result && itemResp.result.item) {
+            if (isStop) {
+              self.isPlaying = false;
+              self.currentTrack = null;
+            } else {
+              self.isPlaying = true;
+              self.currentTrack = itemResp.result.item;
+              this.startProgressUpdater(musicPlayer.playerid, self.currentTrack.duration); // <-- inicia la barra            
+            }
+            // Pots fer servir this.currentTrack.nom = this.getNomCurt(this.currentTrack.file, this.currentTrack.label);
+          } else {
+            self.isPlaying = false;
+            self.currentTrack = null;
+            this.stopProgressUpdater();
+          }
+          //self.cdr.detectChanges(); 
+
+        });
+      } else {
+        self.isPlaying = false;
+        self.currentTrack = null;
+        this.stopProgressUpdater();
+        console.log('No hi ha cap cançó reproduint-se');
+        //self.cdr.detectChanges(); 
+      }
+    });
+  }
+  private startProgressUpdater(playerid: number, duration: number) {
+    // Neteja intervals anteriors
+    console.log('Iniciant actualitzador de progrés per a playerid:', playerid, 'amb durada:', duration);
+    if (this.progressInterval) {
+      console.log('Netejant interval anterior de progrés');
+      clearInterval(this.progressInterval);
+    }
+    this.progressInterval = setInterval(() => {
+      this.kodiSocket.sendMessage('Player.GetProperties', {
+        playerid,
+        properties: ['time']
+      }, (resp: any) => {
+        if (resp.result && resp.result.time) {
+          const t = resp.result.time;
+          const currentSeconds = (t.hours || 0) * 3600 + (t.minutes || 0) * 60 + (t.seconds || 0);
+          this.updateProgress(currentSeconds, duration);
+        }
+      });
+    }, 1000); // Actualitza cada segon
+  }
+  private stopProgressUpdater() {
+    console.log('Aturant actualitzador de progrés');
+    if (this.progressInterval) {
+      console.log('Netejant interval de progrés');
+      clearInterval(this.progressInterval);
+      this.progressInterval = null;
+    }
+  }  
   onIonRangeChange(event: RangeCustomEvent, color: string) {
     const value = event.detail.value;  
     if (color === 'red') {
@@ -273,6 +407,7 @@ export class Tab1Page  implements OnInit {
   }
   onSegmentChanged(event: any) {
     console.log('Segmento cambiado:', event.detail.value);
+    console.log('Canço actual:', this.currentTrack);
     this.segmentValue = event.detail.value;
     if (this.segmentValue === 'llista') {
       this.fabButtons = [
@@ -281,7 +416,20 @@ export class Tab1Page  implements OnInit {
         }
       ];  
     }
+    if (this.segmentValue === 'first') {
+      this.fabButtons = [
+        { icon: 'assets/svg/search.svg',
+          action: () => this.openSearch()
+        }
+      ];  
+    }
   }
+  performSearch() {
+    console.log('Buscando:', this.searchText);
+    this.searchText='';
+    this.closeSearch();
+  }
+
   private ClearPlaylistMusicCurrent() {
     let self = this;
     if (this.llistaCurrentMusic.length===0) {
@@ -299,16 +447,16 @@ export class Tab1Page  implements OnInit {
     this.txtToastMessage = message;
     this.isToastOpen = isOpen;
   }
-private RefrescarLlistaFiles(llista : any[]) : any[] {  
-  let self = this;
-  llista = llista.map((fi) => ({
-    ...fi,
-    added: self.llistaCurrentMusic.some((music: any) => self.getNomCurt(music.file,music.titlecustom) === self.getNomCurt(fi.file,fi.titlecustom)),
-    favorite: self.musicfavorite.some((favorite: any) => favorite.nom === self.getNomCurt(fi.file,fi.titlecustom)),
-    inTempList: self.musiccuatemp.some((cua: any) => cua.nom === self.getNomCurt(fi.file,fi.titlecustom))
-    }));
-  return llista;
-}  
+  private RefrescarLlistaFiles(llista : any[]) : any[] {  
+    let self = this;
+    llista = llista.map((fi) => ({
+      ...fi,
+      added: self.llistaCurrentMusic.some((music: any) => self.getNomCurt(music.file,music.titlecustom) === self.getNomCurt(fi.file,fi.titlecustom)),
+      favorite: self.musicfavorite.some((favorite: any) => favorite.nom === self.getNomCurt(fi.file,fi.titlecustom)),
+      inTempList: self.musiccuatemp.some((cua: any) => cua.nom === self.getNomCurt(fi.file,fi.titlecustom))
+      }));
+    return llista;
+  }  
   getParentDirectory(path: string, nivell: number = 1): string {
     if (!path) return '';
     // Elimina la barra final si n'hi ha
@@ -360,7 +508,28 @@ private RefrescarLlistaFiles(llista : any[]) : any[] {
   onItemFavorits(item: any, index: number) {
     console.log('Item:', item, 'Índex:', index);
     let self = this;
+    if (this.ExisteixCansoLlista(item.file)) {
+      self.txtAlertTitle='Control de música';
+      self.txtAlertMessage='Aquesta cançó ja està afegida a la llista';
+      self.alertButtons = ['D\'acord'];
+      self.isAlertOpen = true;
+      return;
+    }
+
     this.addPlaylistInsertMusic(item.file, this.llistaCurrentMusic.length, false);  
+  }
+  onItemCuaTemp(item: any, index: number) {
+    console.log('Item:', item, 'Índex:', index);
+    let self = this;
+    if (this.ExisteixCansoLlista(item.file)) {
+      self.txtAlertTitle='Control de música';
+      self.txtAlertMessage='Aquesta cançó ja està afegida a la llista';
+      self.alertButtons = ['D\'acord'];
+      self.isAlertOpen = true;
+      return;
+    }
+    this.addPlaylistInsertMusic(item.file, this.llistaCurrentMusic.length, false);
+    this.toggleTempList(item);
   }
   onItemClick(item: any) {
     if (item.filetype === 'directory') {
@@ -396,40 +565,13 @@ private RefrescarLlistaFiles(llista : any[]) : any[] {
         self.llistaFiles = llistaTemp;
         //self.pAddExtraDataLlistaFiles();
         self.directoryClick = "";
+        self.searchText='';
         console.log('Respuesta del socket:', response);
       });
-
-      // const payload = [{
-      //   jsonrpc:"2.0",
-      //   method:"Files.GetDirectory",
-      //   id:"1",
-      //   params:{
-      //     directory:this.directoryClick,
-      //     media:"music",
-      //     properties:["title","file","mimetype","thumbnail","dateadded"],
-      //     sort:{
-      //       method:"none",
-      //       order:"ascending"
-      //       }
-      //     }
-      //   }];
-      // this.dataService.sendMessage(payload).subscribe(response => {
-      //     this.llistaFiles = response[0].result?.files || [];
-      //   console.log('Respuesta:', JSON.stringify(response[0].result?.files));
-      // },
-      // error => {
-      //   console.error('Error en la petición:', error);
-      // });
-      // this.directoryCurrent = this.directoryClick;
     }else{
-      // Aquí puedes gestionar el clic en un archivo
-      console.log('Has clicat en un fitxer:', item);
-      //Cridar al socket de Kodi per posar a la cua de reproducció
       let self = this;
       if (this.ControlMusic) {
         if (this.ExisteixCansoLlista(item.file)) {
-          // Ja existeix a la llista
-          console.log('Aquesta cançó ja està afegida a la llista');
           self.txtAlertTitle='Control de música';
           self.txtAlertMessage='Aquesta cançó ja està afegida a la llista';
           self.alertButtons = ['D\'acord'];
@@ -469,8 +611,9 @@ private RefrescarLlistaFiles(llista : any[]) : any[] {
       }, (response: any) => {
         self.llistaCurrentMusic = response.result?.items || [];
         self.llistaFiles=self.RefrescarLlistaFiles(self.llistaFiles);
-        console.log('Resposta del socket:', response);
-        console.log('Mostrar toast', item);
+        self.musiccuatemp=self.RefrescarLlistaFiles(self.musiccuatemp);
+        self.musicfavorite=self.RefrescarLlistaFiles(self.musicfavorite);
+        
         if (item && item.playlistid===self.playlistIdMusic && 
           self.llistaCurrentMusic.length>0 && 
           item.position<self.llistaCurrentMusic.length) {
@@ -505,7 +648,7 @@ private RefrescarLlistaFiles(llista : any[]) : any[] {
   }
   ParseTimeDuration(duration: number | undefined | null): string {
     try {
-      if (!duration) return '';
+      if (!duration) return '-:--';
       const hores = Math.trunc(duration / 3600);
       const durationsensehores = duration - (hores * 3600);
       const minuts = Math.trunc(durationsensehores / 60);
@@ -529,6 +672,7 @@ private RefrescarLlistaFiles(llista : any[]) : any[] {
     // Aquí pots posar el codi que vols executar quan el socket es connecta
     this.LoadPlaylistMusicCurrent();
     this.GetTypeLists();
+    this.getCurrentPlayingSong();
     // Carregar el directori inicial
     let self = this;
     this.kodiSocket.sendMessage('Files.GetSources', 
@@ -595,6 +739,7 @@ private RefrescarLlistaFiles(llista : any[]) : any[] {
       'favorite',
       (newList) => this.musicfavorite = newList
     );
+    this.musicfavorite=this.RefrescarLlistaFiles(this.musicfavorite);
   }
 
   toggleTempList(item: any) {
@@ -605,12 +750,8 @@ private RefrescarLlistaFiles(llista : any[]) : any[] {
       'inTempList',
       (newList) => this.musiccuatemp = newList
     );
+    this.musiccuatemp=this.RefrescarLlistaFiles(this.musiccuatemp);
   }  
-  xxtoggleTempList(item: any) {
-    item.inTempList = !item.inTempList;
-    console.log(`Archivo ${item.file} en lista temporal: ${item.inTempList}`);
-    // Aquí podrías guardar cambios o emitir evento
-  }
 
   // Función para recibir los datos emitidos desde el componente hijo (TouchCircleComponent)
   onFocoDataReceived(focoData: { pan: number, tilt: number }) {
@@ -649,7 +790,9 @@ private RefrescarLlistaFiles(llista : any[]) : any[] {
     this.kodiSocket.sendMessage('Player.Stop', { playerid: 0 });
   }
 
-
+  updateProgress(currentTime: number, totalDuration: number) {
+    this.progressPercent = totalDuration ? (currentTime / totalDuration) * 100 : 0;
+  }
 
   // onTouchStart(event: MouseEvent | TouchEvent) {
   //   event.preventDefault();

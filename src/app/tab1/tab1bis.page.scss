@@ -1,0 +1,198 @@
+ion-fab-button {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+ion-fab-button:hover {
+  transform: scale(1.1);  /* Escala ligera */
+  box-shadow: 0 4px 8px rgba(0, 150, 136, 0.3);  /* Sombra al pasar el mouse */
+}
+ion-fab[vertical="bottom"][horizontal="end"] {
+  bottom: 0px !important; // O el valor que vulguis (per defecte sol ser 16px)
+  right: 16px; // Pots ajustar també el marge dret si vols
+}
+.primer-segment.connected ion-segment-button {
+  background-color: #4caf50;  /* Verde si está conectado */
+}
+
+.primer-segment.disconnected ion-segment-button {
+  background-color: #f44336;  /* Rojo si está desconectado */
+}
+
+.primer-segment ion-segment-button {
+  transition: background-color 0.3s ease;
+}
+ion-icon {
+  transition: transform 0.3s ease-in-out;
+}
+
+ion-icon:active {
+  transform: scale(1.2);  /* Aumentar el tamaño del icono al hacer clic */
+}
+ion-toast {
+  --background: #00796b;  /* Fondo del toast */
+  --color: white;  /* Color del texto */
+  --border-radius: 10px;
+  padding: 10px;
+}
+.footer-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+  padding: 0 16px;
+  gap: 0;
+}
+
+.track-info {
+  width: 100%;
+  margin-bottom: 2px;
+  display: flex;
+  justify-content: center;   // Centra el contingut horitzontalment
+  align-items: center;
+}
+
+.track-details {
+  font-weight: bold;
+}
+
+.track-details-inline {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: bold;
+}
+
+.track-title {
+  font-size: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.track-duration-inline {
+  font-size: 14px;
+  color: #2196f3;
+  background: #e3f2fd;
+  border-radius: 8px;
+  padding: 2px 8px;
+  margin-left: 4px;
+  font-weight: normal;
+}
+
+.playlist-controls-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;   // Centra la fila de controls
+  flex: 1 1 auto;
+  min-width: 0;
+  margin-right: 0; // Elimina el marge dret extra si vols centrat real
+}
+
+.playlist-total {
+  font-size: 18px;
+  color: #666;
+  margin-right: 16px;
+}
+
+.playback-controls {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  justify-content: center; // Centra els botons dins del seu contenidor
+  width: 100%;
+}
+
+ion-footer {
+  position: relative;
+  background: linear-gradient(90deg, #2196f3 0%, #00bcd4 100%);
+  // height: 56px; // Elimina aquesta línia!
+  min-height: 56px; // Garanteix una alçada mínima
+}
+
+ion-footer ion-toolbar {
+  background: transparent;
+  // height:50px;
+  // min-height: 50px;
+  padding: 0;
+  margin: 0;
+  box-shadow: none;
+  border: none;
+  display: flex;
+  align-items: center;
+  min-height: 50px; // O el que necessitis, però sense height fixa!
+}
+.icon-menu:hover {
+  color: #2196f3 !important; // Azul Material
+  transition: color 0.2s;
+}
+.current-playing {
+  background: #e3f2fd !important; // Blau suau
+  transition: background 0.2s;
+}
+.playing-icon {
+  color: #2196f3 !important;
+  font-size: 22px;
+}
+.current-playing {
+  background: #e3f2fd !important; // Blau suau
+  border-left: 4px solid #2196f3;
+  color: #1565c0 !important;
+  font-weight: bold;
+  box-shadow: 0 2px 8px 0 rgba(33,150,243,0.07);
+  transition: background 0.2s, border 0.2s, color 0.2s;
+}
+.current-playing .file-label {
+  color: #1565c0 !important;
+}
+.current-playing .playing-icon {
+  color: #2196f3 !important;
+}
+
+/* Reutilizable para cualquier modal */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* Contenedor del contenido del modal */
+.modal-content {
+  position: relative;
+  background: white;
+  color: #000; // 👈 Añadido
+  border-radius: 10px;
+  padding: 1rem;
+  max-width: 90%;
+  max-height: 90%;
+  overflow: auto;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  text-align: center;
+}
+
+/* Botón para cerrar el modal */
+.close-button {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #333;
+}
+
+
+.search-item {
+  margin-top: 1rem;
+}
+ion-content {
+  flex: 1 1 auto;
+}

@@ -107,9 +107,31 @@ private pSendMessage(method: string, message: any, callback?: (response: any) =>
       console.error('[KodiSocket] No se puede enviar el mensaje, WebSocket no está conectado');
     }
   }
+  sendMessageAsync(method: string, params: any): Promise<any> {
+    return new Promise((resolve, reject) => {
+      this.sendMessage(method, params, (response: any) => {
+        console.log('Resposta del socket (async):', response);
+        if (response && !response.error) {
+          resolve(response);
+        } else {
+          reject(response?.error || 'Error en respuesta');
+        }
+      });
+    });
+  }
 
   sendMessage(method: string,message: any, callback?: (response: any) => void) {
-    this.pSendMessage(method,message,callback);
+    if (this.socket && this.pHasSocketOpen()) {
+      const id = this.numidrequestkodisocket++;
+      const request = this.pGetRequestKodi(method, message, id);
+      if (callback) {
+        this.requestCallbacks[id] = callback;
+      }
+      this.socket.send(JSON.stringify(request));
+    } else {
+        console.error('[KodiSocket] No se puede enviar el mensaje, WebSocket no está conectado');
+      }
+    //this.pSendMessage(method,message,callback);
     // if (((method.length>7 && method.substring(0,6)=='Input.') ||
     //     (!(callback && typeof callback=='function'))) && 
     //   this.pHasSocketOpen()) {

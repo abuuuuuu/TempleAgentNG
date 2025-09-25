@@ -14,7 +14,7 @@ public class MainActivity extends BridgeActivity {
     this.getBridge().getWebView().getSettings().setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
 
     // ⚠️ Verifica que el WebView está sirviendo desde file:// (solo para testing)
-    android.util.Log.d("DEBUG", "WebView URL: " + this.getBridge().getWebView().getUrl());
+    //android.util.Log.d("DEBUG", "WebView URL: " + this.getBridge().getWebView().getUrl());
   }
 }
 

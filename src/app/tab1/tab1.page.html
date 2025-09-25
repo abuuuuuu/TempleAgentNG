@@ -1,5 +1,5 @@
 <ion-page>
-<ion-header style="height: 50px;">
+<ion-header style="height: 75px;padding-top: 25px;background-color: white;">
   <!-- <ion-toolbar>
     <ion-title></ion-title>
   </ion-toolbar> -->
@@ -27,6 +27,9 @@
       </ion-segment-button>
       <ion-segment-button value="llums" content-id="llums">
         <ion-label>Llum</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="songsplayed" content-id="songsplayed">
+        <ion-label>Played</ion-label>
       </ion-segment-button>
     </ion-segment>
 
@@ -191,7 +194,7 @@
               <div class="file-label"
                 button
                 [ngStyle]="{ 'font-weight': item.added ? 'bold' : 'normal' }"
-                (click)="onItemCuaTemp(item, i)"
+                (click)="onItemCuaTemp(item)"
               >
                 {{ item.nom }}
               </div>
@@ -210,36 +213,49 @@
                 class="icon-hover icon-list"
                 src="assets/svg/ellipsis-vertical.svg"
                 slot="end"
-                (click)="setOpenActionSheet(true)"
+                (click)="setOpenActionSheet(true,item,i,'cuatemp')"
               ></ion-icon>
             </ion-item>
           </ion-list>
         </ion-content>    
   </ion-segment-content>
   <ion-segment-content id="llums">
-  <ion-label class="status-label" [ngClass]="connectedSocket ? 'connected' : 'disconnected'">
-    {{ connectedSocket ? 'Connectat a Kodi' : 'Desconnectat de Kodi' }}
-    {{urlKodi}}
-    {{urlSocketKodi}}
-    {{urlDMX}}
-  </ion-label>
     <ion-content>
       <app-touch-circle (focoData)="onFocoDataReceived($event)"></app-touch-circle> 
-    </ion-content>
-
-    <ion-content>
-      <ion-range [min]="minValue" [max]="maxValue" [(ngModel)]="redRange" aria-label="Dual Knobs Range" [pin]="true" [dualKnobs]="true" (ionChange)="onIonRangeChange($event,'red')">
+      <ion-range name="redRange" [min]="minValue" [max]="maxValue" [(ngModel)]="redRange" aria-label="Dual Knobs Range" [pin]="true" [dualKnobs]="true" (ionChange)="onIonRangeChange($event,'red')">
         <ion-icon slot="start" src="assets/svg/color-palette-sharp.svg" class="redlow"></ion-icon>
         <ion-icon slot="end" src="assets/svg/color-palette-sharp.svg" class="redhigh"></ion-icon>
       </ion-range>
-    </ion-content>
-    <ion-content>
-      <ion-range aria-label="Dual Knobs Range" [pin]="true" [dualKnobs]="true" [value]="{ lower: 0, upper: 255 }" (ionChange)="onIonRangeChange($event,'green')">
+      <!-- <ion-range name="greenRange" aria-label="Dual Knobs Range" [(ngModel)]="greenRange" [pin]="true" [dualKnobs]="true" [value]="{ lower: 0, upper: 255 }" (ionChange)="onIonRangeChange($event,'green')">
         <ion-icon slot="start" src="assets/svg/color-palette-sharp.svg" class="greenlow"></ion-icon>
         <ion-icon slot="end" src="assets/svg/color-palette-sharp.svg" class="greenhigh"></ion-icon>
-      </ion-range>
+      </ion-range> -->
     </ion-content>
-
+  </ion-segment-content>
+  <ion-segment-content id="songsplayed">
+        <ion-content>
+          <ion-list>
+            <ion-item 
+              *ngFor="let item of musicplayed; let i = index"
+            >
+              <div class="file-label">
+                {{ item.nom }}
+              </div>
+              <ion-note slot="end">
+                {{ ParseTimeDuration(item.duration) }}
+              </ion-note>
+              <ion-icon
+                slot="end"
+                class="played-icon icon-list"
+                src="assets/svg/time-outline.svg"
+                color="secondary">
+              </ion-icon>
+              <span *ngIf="item.dateplayed" class="date-played">
+                {{ item.dateplayed | date:'short' }}
+              </span>
+            </ion-item>
+          </ion-list>
+        </ion-content>    
   </ion-segment-content>
 </ion-segment-view>
 
@@ -252,7 +268,7 @@
       <div class="track-info" *ngIf="currentTrack">
         <div class="track-details-inline">
           <span class="track-title">{{ getNomCurt(currentTrack.file, currentTrack.titlecustom) }}</span>
-          <span class="track-duration-inline">{{ ParseTimeDuration(currentTrack.duration) }}</span>
+          <span class="track-duration-inline">{{ ParseTimeDuration(timeRemaining) }}</span>
         </div>
       </div>
 
